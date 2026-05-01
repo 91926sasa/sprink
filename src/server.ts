@@ -19,6 +19,7 @@ import { notificationRouter } from './routes/notifications.js';
 import { seriesRouter } from './routes/series.js';
 import { playReportRouter } from './routes/play-reports.js';
 import { rankingRouter } from './routes/rankings.js';
+import { serviceRouter } from './routes/service.js';
 import path from 'path';
 import { authMiddleware } from './middleware/auth.js';
 import { requestIdMiddleware } from './middleware/request-id.js';
@@ -70,6 +71,7 @@ app.use('/api/v1', notificationRouter);
 app.use('/api/v1', seriesRouter);
 app.use('/api/v1', playReportRouter);
 app.use('/api/v1', rankingRouter);
+app.use('/api/v1', serviceRouter);
 
 // Serve Vite-built frontend
 import { fileURLToPath } from 'url';
