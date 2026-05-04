@@ -38,6 +38,10 @@ export async function initializeDatabase(): Promise<'sqlite' | 'pg'> {
     }
 
     backend = 'pg';
+
+    const { runPgMigrations } = await import('./migrate-pg.js');
+    await runPgMigrations();
+
     console.log('[Sprink DB] Backend: PostgreSQL');
     return 'pg';
   }
