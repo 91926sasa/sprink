@@ -4,6 +4,7 @@ import { requireAuth } from '../middleware/auth.js';
 import { scenarioRepository } from '../db/repositories/scenario.repository.js';
 import { tagRepository } from '../db/repositories/tag.repository.js';
 import { snowflakeId } from '../lib/snowflake.js';
+import { generateCoverImage } from '../services/cover-image.service.js';
 
 export const scenarioRouter = Router();
 
@@ -182,6 +183,10 @@ scenarioRouter.patch('/scenarios/:id/status', requireAuth, async (req, res) => {
 
     if (status === 'published') {
       await tagRepository.recalculateUsageCounts().catch(() => {});
+      // カバー画像を非同期生成（レスポンスをブロックしない）
+      generateCoverImage(req.params.id).catch(err => {
+        console.error('[Scenarios] Cover image generation failed:', err);
+      });
     }
 
     sendSuccess(res, { success: true });

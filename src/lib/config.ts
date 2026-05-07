@@ -31,6 +31,10 @@ export const config = {
     redirectUri: process.env.TRPGO_OIDC_REDIRECT_URI || '',
     scopes: ['openid', 'profile', 'sprink'] as readonly string[],
   },
+  hum: {
+    url: process.env.HUM_URL || process.env.MATERIAL_STUDIO_URL || '',
+    serviceToken: process.env.HUM_SERVICE_TOKEN || '',
+  },
 } as const;
 
 export function validateRequiredEnvVars(): void {
