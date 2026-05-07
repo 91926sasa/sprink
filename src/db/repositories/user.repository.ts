@@ -90,6 +90,28 @@ export async function findByProvider(provider: string, providerId: string): Prom
   };
 }
 
+export async function findByTrpgoUserId(trpgoUserId: string): Promise<User | null> {
+  const result = await query<{
+    id: string;
+    name: string;
+    provider: string;
+    avatar_url: string | null;
+  }>(
+    'SELECT id, name, provider, avatar_url FROM users WHERE trpgo_user_id = $1',
+    [trpgoUserId]
+  );
+
+  if (result.rows.length === 0) return null;
+
+  const row = result.rows[0];
+  return {
+    id: row.id,
+    name: row.name,
+    provider: row.provider,
+    avatarUrl: row.avatar_url ?? undefined,
+  };
+}
+
 export async function getUserFacts(userId: string): Promise<UserFacts> {
   const result = await query<{ facts_json: UserFacts }>(
     'SELECT facts_json FROM facts_snapshot WHERE user_id = $1',
@@ -148,6 +170,7 @@ export async function upsertUserFacts(facts: UserFacts): Promise<void> {
 export const userRepository = {
   findById: findUserById,
   findByProvider,
+  findByTrpgoUserId,
   create: createUser,
   createUser,
   update: updateUser,

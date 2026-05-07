@@ -8,6 +8,29 @@ import { query } from '../db/unified-client.js';
 
 export const profileRouter = Router();
 
+// GET /users/by-trpgo/:trpgoId — Resolve OIDC sub to internal user page
+// TRPGOファミリーフィードからのリンク用: trpgo_user_id → internal user ID にリダイレクト
+const SAFE_TRPGO_ID_RE = /^[A-Za-z0-9_-]+$/;
+profileRouter.get('/users/by-trpgo/:trpgoId', async (req, res) => {
+  try {
+    const { trpgoId } = req.params;
+    if (!SAFE_TRPGO_ID_RE.test(trpgoId)) {
+      sendError(res, 400, 'validation_error', 'Invalid TRPGO user ID');
+      return;
+    }
+    const user = await userRepository.findByTrpgoUserId(trpgoId);
+    if (!user) {
+      // ユーザーが見つからない場合はトップページにリダイレクト
+      res.redirect('/');
+      return;
+    }
+    res.redirect(`/users/${user.id}`);
+  } catch (err) {
+    console.error('[Profile] TRPGO lookup error:', err);
+    sendError(res, 500, 'internal_error', 'Failed to look up user');
+  }
+});
+
 // GET /users/:id — Public profile
 profileRouter.get('/users/:id', async (req, res) => {
   try {
