@@ -8,10 +8,15 @@ import { generateCoverImage } from '../services/cover-image.service.js';
 
 export const scenarioRouter = Router();
 
+const SAFE_ID_RE = /^[A-Za-z0-9_-]+$/;
+
 // GET /scenarios — List/search published scenarios
 scenarioRouter.get('/scenarios', async (req, res) => {
   try {
-    const { q, system, genre, tags, player_count, sort, offset, limit } = req.query;
+    const { q, system, genre, tags, player_count, author, sort, offset, limit } = req.query;
+
+    // Validate author (TRPGO user ID / OIDC sub)
+    const authorTrpgoId = typeof author === 'string' && SAFE_ID_RE.test(author) ? author : undefined;
 
     const result = await scenarioRepository.search({
       q: q as string,
@@ -19,6 +24,7 @@ scenarioRouter.get('/scenarios', async (req, res) => {
       genre: genre as string,
       tags: tags ? (tags as string).split(',') : undefined,
       playerCount: player_count ? parseInt(player_count as string, 10) : undefined,
+      authorTrpgoId,
       sort: (sort as any) || 'newest',
       offset: offset ? parseInt(offset as string, 10) : 0,
       limit: limit ? parseInt(limit as string, 10) : 20,

@@ -178,6 +178,8 @@ interface SearchParams {
   genre?: string;
   tags?: string[];
   playerCount?: number;
+  /** TRPGO user ID (OIDC sub) でフィルター */
+  authorTrpgoId?: string;
   sort?: 'newest' | 'popular' | 'rating' | 'trending';
   offset?: number;
   limit?: number;
@@ -206,6 +208,10 @@ export async function search(params: SearchParams): Promise<{ items: ScenarioSum
     values.push(params.playerCount);
     i++;
   }
+  if (params.authorTrpgoId) {
+    conditions.push(`u.trpgo_user_id = $${i++}`);
+    values.push(params.authorTrpgoId);
+  }
 
   let tagJoin = '';
   if (params.tags && params.tags.length > 0) {
@@ -217,9 +223,14 @@ export async function search(params: SearchParams): Promise<{ items: ScenarioSum
 
   const where = conditions.join(' AND ');
 
+  // authorTrpgoId uses u.trpgo_user_id → need users JOIN in count query too
+  const userJoinForCount = params.authorTrpgoId
+    ? 'JOIN users u ON u.id = s.author_id'
+    : '';
+
   // Count
   const countResult = await query<{ count: number }>(
-    `SELECT COUNT(DISTINCT s.id) as count FROM scenarios s ${tagJoin} WHERE ${where}`,
+    `SELECT COUNT(DISTINCT s.id) as count FROM scenarios s ${userJoinForCount} ${tagJoin} WHERE ${where}`,
     values
   );
   const total = countResult.rows[0]?.count ?? 0;
