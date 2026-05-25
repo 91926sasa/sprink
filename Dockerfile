@@ -13,7 +13,7 @@ WORKDIR /app
 
 COPY package.json ./
 
-RUN rm -f package-lock.json && npm install
+RUN rm -f package-lock.json && npm install --ignore-scripts
 
 COPY . .
 RUN rm -f package-lock.json && npm run build
