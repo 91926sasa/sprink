@@ -52,6 +52,11 @@ export function validateRequiredEnvVars(): void {
     errors.push('CORS_ORIGIN must be set to your production domain(s)');
   }
 
+  const serviceToken = process.env.SERVICE_TOKEN;
+  if (serviceToken && serviceToken.length < 32) {
+    errors.push('SERVICE_TOKEN must be at least 32 characters (current: ' + serviceToken.length + ')');
+  }
+
   if (errors.length > 0) {
     console.error('[Sprink] FATAL: Missing required environment variables:');
     errors.forEach(e => console.error(`  - ${e}`));
