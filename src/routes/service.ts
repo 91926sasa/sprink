@@ -5,6 +5,15 @@ import { scenarioRepository } from '../db/repositories/scenario.repository.js';
 import { tagRepository } from '../db/repositories/tag.repository.js';
 import { snowflakeId } from '../lib/snowflake.js';
 import { generateCoverImage } from '../services/cover-image.service.js';
+import { query } from '../db/client.js';
+
+async function ensureServiceUser(userId: string): Promise<void> {
+  await query(
+    `INSERT INTO users (id, name, provider) VALUES ($1, $2, 'service')
+     ON CONFLICT (id) DO NOTHING`,
+    [userId, 'Virtual Writers']
+  );
+}
 
 export const serviceRouter = Router();
 
@@ -40,6 +49,11 @@ serviceRouter.post('/service/scenarios', requireServiceToken, async (req, res) =
     }
 
     const authorId = (req as any).serviceUser?.sub || 'user_writers';
+    await ensureServiceUser(authorId);
+
+    const validSpoilerLevels = ['none', 'mild', 'heavy'];
+    const safeSpoilerLevel = validSpoilerLevels.includes(spoilerLevel) ? spoilerLevel : 'none';
+
     const id = snowflakeId();
     const scenario = await scenarioRepository.create({
       id,
@@ -52,7 +66,7 @@ serviceRouter.post('/service/scenarios', requireServiceToken, async (req, res) =
       playerCountMax: playerCountMax || 4,
       estimatedTime: estimatedTime || null,
       chapters: chapters || [],
-      spoilerLevel: spoilerLevel || 'none',
+      spoilerLevel: safeSpoilerLevel,
     });
 
     if (tagNames && Array.isArray(tagNames)) {
