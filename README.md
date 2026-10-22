@@ -57,13 +57,18 @@ Sprink は TRPGO ファミリーのサービスの一つです。
 
 | 層 | 使っているもの |
 | --- | --- |
-| 言語 | TypeScript（Node.js 20 以上） |
+| 言語 | TypeScript（Node.js 24.22.1 以上の 24 系） |
 | フロントエンド | React 18・React Router 6・Tailwind CSS・Vite 5 |
 | サーバー | Express 4 |
 | DB（本番） | PostgreSQL（`pg`）＋ Redis（`ioredis`） |
 | DB（開発） | SQLite（`better-sqlite3`） |
 | 認証 | TRPGO への OIDC（PKCE）＋ Cookie セッション |
-| デプロイ | Dockerfile（node:20-alpine の多段ビルド） |
+| デプロイ | Dockerfile（node:24.22.1-alpine の多段ビルド） |
+
+Node は 2026-10-21 のセキュリティ更新が入った版に、patch まで固定しています。
+24 系を選んだのは、今の依存（`better-sqlite3` 12 ほか）が 24 系で型チェック・ビルド・起動まで通り、22 系より長く保守されるためです。
+20 系は保守が終わり、この更新が出ないため外しました。
+Dockerfile は lockfile を消して入れ直すため、直った版の下限は `package.json` 側で上げています（`express` 4.22.3・`compression` 1.8.2）。
 
 一つの Express プロセスが、API と画面の両方を返します。
 API は `/api/v1` 以下です。
@@ -105,7 +110,7 @@ SQLite でユーザーが 0 人なら、開発用のサンプルデータも入�
 ## ローカルでの起動
 
 以下はコードと設定から読み取った手順です。
-Node.js 20 以上が必要です。
+Node.js 24.22.1 以上の 24 系が必要です（22.23.4 以上の 22 系、26.12.1 以上でも動く範囲です。`package.json` の `engines` を参照）。
 
 ```sh
 npm install
@@ -188,6 +193,10 @@ TRPGO の OIDC を試すなら、`TRPGO_OIDC_*` を設定します。
   サービス API が付ける Me'm へのリンクは、`**` がそのまま見えます。
   リンクとしてはクリックできません。
 - 自動テストはありません。
+- CI（GitHub Actions）の設定はありません。
+  Node の版は Dockerfile と `engines` だけで固定しています。
+- `npm audit --omit=dev` に moderate が 2 件残ります（`react-router` と `react-router-dom`）。
+  7 系への破壊的な更新が要るため、上げていません。
 - 本番のデプロイ先と公開 URL は、このリポからは未確認です。
 - `package.json` は MIT ライセンスですが、LICENSE ファイルはありません。
 
